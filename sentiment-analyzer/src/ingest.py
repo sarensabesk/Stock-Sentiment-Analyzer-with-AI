@@ -12,6 +12,5 @@ import feedparser
 
 
 #All Downloaded CSV go here
-DATA_DIR = "data"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 os.makedirs(DATA_DIR, exist_ok=True)
-
