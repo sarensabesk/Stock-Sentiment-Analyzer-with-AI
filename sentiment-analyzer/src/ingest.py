@@ -74,5 +74,51 @@ def fetch_prices(ticker, start="2024-01-01", end=None, auto_adjust=True):
 
     return df
 
+
+def fetch_headlines_rss(ticker, max_items=200, regions=("US","CA"), sleep_between=0.0):
+    all_rows = []
+
+    for region in regions: # Goes thru cad and us, and gets all the artical and puts it into entries
+        url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={ticker}&region={region}&lang=en-US"
+        feed = feedparser.parse(url)
+        entries = getattr(feed, "entries", []) or []
+
+        for entry in entries[:max_items]: #Gives defult max of 200 articles, so it doesnt overload
+            raw_title = entry.get("title", "") #Gets title
+            title = _clean_text(raw_title) #Cleans it
+            if not title:
+                continue
+
+            published = entry.get("published_parsed") # Gets time from article
+            if not published: #skip if no time
+                continue
+
+            try:
+                pub_date = dt.date(published.tm_year, published.tm_mon, published.tm_mday) #Converts it to date
+            except Exception:
+                continue
+
+            # Builds a mini-dictionary (a “row”) and appends it to all_rows
+            all_rows.append({ 
+                "Date": pub_date,
+                "Headline": title,
+                "Source": f"YahooFinanceRSS:{region}",
+            })
+
+            if sleep_between and sleep_between > 0: # Waits a few seconds before continuing.
+                time.sleep(sleep_between)
+
+    if not all_rows:
+        return pd.DataFrame(columns=["Date", "Headline", "Source"]) #If we didn’t collect any rows (empty feed or bad ticker), return an empty DataFrame with correct column names.
+
+    df = pd.DataFrame(all_rows)
+    # Deduplicate identical headlines on the same date (can happen across regions)
+    df = df.drop_duplicates(subset=["Date", "Headline"], keep="first")
+    # Ensure consistent dtypes
+    df["Headline"] = df["Headline"].astype(str)
+    df["Source"] = df["Source"].astype(str)
+    # Date is already a datetime.date from above
+    return df
+
     
 
