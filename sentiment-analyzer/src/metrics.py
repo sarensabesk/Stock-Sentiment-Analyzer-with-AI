@@ -5,10 +5,9 @@ import datetime as dt
 
 
 def merge_sentiment_prices(sentiment_df: pd.DataFrame, prices_df: pd.DataFrame) -> pd.DataFrame:
-    def merge_sentiment_prices(sentiment_df: pd.DataFrame, prices_df: pd.DataFrame) -> pd.DataFrame:
     
-   # Merge daily sentiment with daily prices and compute next-day returns.
-
+ # Merge daily sentiment with daily prices and compute next-day returns.
+    
     req_px = {'Date','Open','High','Low','Close','Adj Close','Volume','Return'}
     req_sent = {"Date","avg_pos","avg_neu","avg_neg","avg_compound","headline_count"}
 
