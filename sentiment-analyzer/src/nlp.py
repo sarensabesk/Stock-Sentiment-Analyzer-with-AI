@@ -57,6 +57,41 @@ def score_headlines(df):
 
     return out
 
+def daily_sentiment(df):
+    required = {"Date", "pos", "neu", "neg", "compound"}
+
+    if not required.issubset(df.columns):
+        missing = required - set(df.columns)
+        raise ValueError(f"Missing required columns: {missing}")
+    
+    if df.empty:
+        cop = ["Date","avg_pos","avg_neu","avg_neg","avg_compound","headline_count"]
+        return pd.DataFrame(columns=cop)
+    
+    g = df.groupby("Date", as_index=False) #group by date
+
+    means = g[['pos', 'neu', 'neg', 'compound']].mean() #gets mean
+
+    means = means.rename(columns={ #rename cols for simplcity sake
+        "pos":"avg_pos",
+        "neg": "avg_neg",
+        "neu": "avg_neu",
+        "compound": "avg_compound"})
+    
+    counts = df.groupby("Date").size().reset_index(name="headline_count")
+
+    daily = means.merge(counts, on="Date", how="inner")
+
+    daily = daily.sort_values("Date").reset_index(drop=True)
+
+    order = ["Date","avg_pos","avg_neu","avg_neg","avg_compound","headline_count"]
+
+    daily = daily[order]
+
+    return daily
+
+
+
 
 
 
